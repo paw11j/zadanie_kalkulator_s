@@ -65,7 +65,7 @@ public class NetEarningsCalculatorControllerIntegrationTest {
 
         mockNbpResponse("/EUR", EUR_NBP_RESPONSE);
 
-        String response = callCalculator("100", "DE");
+        String response = callCalculatorAndExpectCorrectlyResponse("100", "DE");
 
         NetEarningAmount amount = objectMapper.readValue(response, NetEarningAmount.class);
         Assert.assertThat(amount.getAmount(), greaterThan(BigDecimal.valueOf(0)));
@@ -77,7 +77,7 @@ public class NetEarningsCalculatorControllerIntegrationTest {
 
         mockNbpResponse("/GBP", GPB_NBP_RESPONSE);
 
-        String response = callCalculator("100", "UK");
+        String response = callCalculatorAndExpectCorrectlyResponse("100", "UK");
 
         NetEarningAmount amount = objectMapper.readValue(response, NetEarningAmount.class);
         Assert.assertThat(amount.getAmount(), greaterThan(BigDecimal.valueOf(0)));
@@ -87,14 +87,28 @@ public class NetEarningsCalculatorControllerIntegrationTest {
     @Test
     public void shouldCalculateValueForPL_whenInputHasCorrectFormat() throws Exception {
 
-        String response = callCalculator("100", "PL");
+        String response = callCalculatorAndExpectCorrectlyResponse("100", "PL");
 
         NetEarningAmount amount = objectMapper.readValue(response, NetEarningAmount.class);
         Assert.assertThat(amount.getAmount(), greaterThan(BigDecimal.valueOf(0)));
         mockServer.verify(HttpRequest.request(), VerificationTimes.exactly(0));
     }
 
-    private String callCalculator(String dailyGrossEarnings, String countryCode) throws Exception {
+    @Test
+    public void shouldResponseBadRequest_whenInputHasOnlyOneDecimalNumber() throws Exception {
+
+        callCalculatcallCalculatorAndExpectBadResponse("100.0", "PL");
+        mockServer.verify(HttpRequest.request(), VerificationTimes.exactly(0));
+    }
+
+    @Test
+    public void shouldResponseBadRequest_whenInputHasMoreThanTwoDecimalNumber() throws Exception {
+
+        callCalculatcallCalculatorAndExpectBadResponse("100.123", "PL");
+        mockServer.verify(HttpRequest.request(), VerificationTimes.exactly(0));
+    }
+
+    private String callCalculatorAndExpectCorrectlyResponse(String dailyGrossEarnings, String countryCode) throws Exception {
         return mockMvc.perform(MockMvcRequestBuilders
                 .get("/earnings")
                 .param("dailyGrossEarnings", dailyGrossEarnings)
@@ -102,6 +116,14 @@ public class NetEarningsCalculatorControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
+    }
+
+    private void callCalculatcallCalculatorAndExpectBadResponse(String dailyGrossEarnings, String countryCode) throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders
+                .get("/earnings")
+                .param("dailyGrossEarnings", dailyGrossEarnings)
+                .param("countryCode", countryCode))
+                .andExpect(status().isBadRequest());
     }
 
     private void mockNbpResponse(String requestPath, String responseBody) {
