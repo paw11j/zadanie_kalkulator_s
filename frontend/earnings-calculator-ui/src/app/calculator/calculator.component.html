@@ -4,7 +4,7 @@
       <label class="control-label" for="earnings">
         Kwota brutto (dzienna):
       </label>
-      <input type="number" id="earnings" class="form-control" formControlName="earnings"
+      <input type="text" id="earnings" class="form-control" formControlName="earnings"
              [(ngModel)]="dailyGrossEarnings">
     </div>
     <div *ngIf="form.controls.earnings.invalid && (form.controls.earnings.dirty || form.controls.earnings.touched)"
