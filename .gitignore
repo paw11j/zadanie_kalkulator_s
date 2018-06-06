@@ -6,3 +6,6 @@
 
 ### maven ####
 backend/earnings-calculator/target/
+
+### angular ###
+frontend/earnings-calculator-ui/node_modules
